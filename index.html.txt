@@ -1,0 +1,485 @@
+
+
+---
+
+```html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🌸 花と幻想 · 免费版</title>
+    <!-- 日系像素字体 (Google Fonts) -->
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=M+PLUS+1p&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: #ffd1dc;
+            font-family: 'DotGothic16', 'M PLUS 1p', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8px;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 400px;
+            background: #fff0f5;
+            border-radius: 32px;
+            border: 4px solid #ff99aa;
+            box-shadow: 0 8px 0 #ff6680, 0 12px 20px rgba(255, 105, 135, 0.3);
+            overflow: hidden;
+            padding: 16px 12px 20px;
+        }
+        /* 标题区域 */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            background: #ffe4ec;
+            padding: 8px 12px;
+            border-radius: 40px;
+            border: 2px solid #ffb6c1;
+        }
+        .title {
+            font-size: 18px;
+            color: #d44e6c;
+            text-shadow: 2px 2px 0 #ffb6c1;
+            letter-spacing: 2px;
+        }
+        .free-badge {
+            background: #ff99aa;
+            padding: 6px 14px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            border-bottom: 3px solid #ff4d6d;
+        }
+        /* 选项卡 */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            background: #ffe4ec;
+            border: 2px solid #ffb6c1;
+            border-radius: 30px;
+            font-size: 14px;
+            color: #b3445c;
+            cursor: pointer;
+            transition: 0.1s ease;
+            box-shadow: 0 4px 0 #ff99aa;
+        }
+        .tab.active {
+            background: #ffb6c1;
+            color: white;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #ff6680;
+        }
+        /* 内容区域 */
+        .content {
+            background: #ffeef2;
+            border-radius: 24px;
+            padding: 16px 12px;
+            border: 2px solid #ffb6c1;
+            min-height: 400px;
+        }
+        /* 图鉴网格 */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .character-card {
+            aspect-ratio: 3/4;
+            background: #ffe1e8;
+            border: 2px solid #ff99aa;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 2px;
+            box-shadow: 0 4px 0 #ff6680;
+            font-size: 10px;
+            text-align: center;
+            color: #a13e55;
+            position: relative;
+        }
+        .character-card.owned {
+            background: #ffe4f0;
+            border-color: #ff80a0;
+        }
+        .character-card .rarity-R { background: #a0d6b4; }   /* R: 柔绿 */
+        .character-card .rarity-SR { background: #b3c7ff; }  /* SR: 淡蓝 */
+        .character-card .rarity-SSR { background: #ffd700; } /* SSR: 金色 */
+        .character-card .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffccdd;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .character-card .name {
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70px;
+        }
+        .character-card .attr {
+            font-size: 8px;
+            background: #ffb6c1;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 20px;
+            margin-top: 3px;
+        }
+        .character-card:not(.owned) {
+            filter: grayscale(1) brightness(0.8);
+            opacity: 0.6;
+        }
+        .character-card:not(.owned) .avatar {
+            background: #bb99aa;
+            content: "?";
+        }
+        /* 抽卡区域 */
+        .gacha-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .gacha-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .gacha-btn {
+            background: #ff99aa;
+            border: none;
+            border-bottom: 4px solid #ff4d6d;
+            color: white;
+            font-family: inherit;
+            font-size: 16px;
+            padding: 12px 20px;
+            border-radius: 40px;
+            width: 130px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #ff6680;
+            transition: 0.05s linear;
+        }
+        .gacha-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 0;
+            box-shadow: none;
+        }
+        .pity-counter {
+            background: #ffe4ec;
+            padding: 8px;
+            border-radius: 30px;
+            border: 2px solid #ffb6c1;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-around;
+        }
+        .result-area {
+            background: #ffe4ec;
+            border-radius: 20px;
+            padding: 12px;
+            min-height: 120px;
+            border: 2px dashed #ff99aa;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+        .result-card {
+            width: 70px;
+            background: #ffd9e5;
+            border: 2px solid #ff99aa;
+            border-radius: 12px;
+            padding: 6px 2px;
+            text-align: center;
+            font-size: 10px;
+            animation: pop 0.2s ease;
+        }
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .footer-note {
+            margin-top: 15px;
+            font-size: 9px;
+            color: #b36277;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="app">
+    <!-- 头部 -->
+    <div class="header">
+        <span class="title">🌸 花と幻想 · 免费版</span>
+        <span class="free-badge">无限抽卡</span>
+    </div>
+
+    <!-- 选项卡 (只有抽卡和图鉴) -->
+    <div class="tabs">
+        <div class="tab active" data-tab="gacha">🌸 抽卡</div>
+        <div class="tab" data-tab="album">📖 图鉴</div>
+    </div>
+
+    <!-- 动态内容 -->
+    <div class="content" id="content">
+        <!-- 默认抽卡界面会由JS渲染 -->
+    </div>
+
+    <!-- 底部小字 -->
+    <div class="footer-note">完全免费 · 收集所有美少女吧！</div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 游戏数据 ----------
+        // 36个原创中文角色 (日式可爱风格)
+        const ROLES = [
+            // SSR (6名)
+            { id: 1, name: '星璃', rarity: 'SSR', attr: '光', emoji: '✨' },
+            { id: 2, name: '风铃', rarity: 'SSR', attr: '風', emoji: '🎐' },
+            { id: 3, name: '波月', rarity: 'SSR', attr: '水', emoji: '🌊' },
+            { id: 4, name: '焰心', rarity: 'SSR', attr: '火', emoji: '🔥' },
+            { id: 5, name: '夜魅', rarity: 'SSR', attr: '闇', emoji: '🌙' },
+            { id: 6, name: '霜雪', rarity: 'SSR', attr: '氷', emoji: '❄️' },
+            // SR (12名)
+            { id: 7, name: '桃音', rarity: 'SR', attr: '水', emoji: '🍑' },
+            { id: 8, name: '阳葵', rarity: 'SR', attr: '光', emoji: '🌻' },
+            { id: 9, name: '铃风', rarity: 'SR', attr: '風', emoji: '🍃' },
+            { id: 10, name: '雪奈', rarity: 'SR', attr: '氷', emoji: '⛄' },
+            { id: 11, name: '林果', rarity: 'SR', attr: '木', emoji: '🍎' },
+            { id: 12, name: '涟漪', rarity: 'SR', attr: '水', emoji: '💧' },
+            { id: 13, name: '灯花', rarity: 'SR', attr: '火', emoji: '🏮' },
+            { id: 14, name: '明莉', rarity: 'SR', attr: '光', emoji: '🌼' },
+            { id: 15, name: '羽音', rarity: 'SR', attr: '風', emoji: '🕊️' },
+            { id: 16, name: '雷鼓', rarity: 'SR', attr: '雷', emoji: '⚡' },
+            { id: 17, name: '潮音', rarity: 'SR', attr: '水', emoji: '🐚' },
+            { id: 18, name: '叶月', rarity: 'SR', attr: '木', emoji: '🍂' },
+            // R (18名)
+            { id: 19, name: '小光', rarity: 'R', attr: '光', emoji: '🌟' },
+            { id: 20, name: '小露', rarity: 'R', attr: '水', emoji: '💧' },
+            { id: 21, name: '小火', rarity: 'R', attr: '火', emoji: '🔥' },
+            { id: 22, name: '小风', rarity: 'R', attr: '風', emoji: '🍃' },
+            { id: 23, name: '小木', rarity: 'R', attr: '木', emoji: '🌿' },
+            { id: 24, name: '小雪', rarity: 'R', attr: '氷', emoji: '❄️' },
+            { id: 25, name: '小阳', rarity: 'R', attr: '光', emoji: '☀️' },
+            { id: 26, name: '小蛇', rarity: 'R', attr: '蛇', emoji: '🐍' },
+            { id: 27, name: '小暗', rarity: 'R', attr: '闇', emoji: '🌑' },
+            { id: 28, name: '小土', rarity: 'R', attr: '土', emoji: '🪨' },
+            { id: 29, name: '小焰', rarity: 'R', attr: '火', emoji: '🔥' },
+            { id: 30, name: '小炎', rarity: 'R', attr: '炎', emoji: '🌋' },
+            { id: 31, name: '小喵', rarity: 'R', attr: '猫', emoji: '🐱' },
+            { id: 32, name: '小谜', rarity: 'R', attr: '迷', emoji: '❓' },
+            { id: 33, name: '小猿', rarity: 'R', attr: '猿', emoji: '🐒' },       { id: 34, name: '小蟹', rarity: 'R', attr: '蟹', emoji: '🦀' },
+            { id: 35, name: '小怪', rarity: 'R', attr: '怪', emoji: '👾' },
+            { id: 36, name: '小薇', rarity: 'R', attr: '吸血', emoji: '🧛' }
+        ];
+
+        // 概率配置 (可随意调整，免费版可以调高SSR概率增加爽感)
+        const PROB = {
+            SSR: 0.10,  // 10% SSR (比付费版高，更爽)
+            SR: 0.30,   // 30% SR
+            R: 0.60     // 60% R
+        };
+
+        // 保底计数器
+        let pitySR = 0;    // 距离保底SR还差几次抽卡 (10抽保底)
+        let pitySSR = 0;   // 距离保底SSR还差几次抽卡 (40抽保底)
+
+        // 已收集数组
+        let owned = new Array(ROLES.length).fill(false);
+
+        // 加载存档
+        function loadSave() {
+            try {
+                const saved = localStorage.getItem('hanagenkyo_free');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    owned = data.owned || new Array(ROLES.length).fill(false);
+                    pitySR = data.pitySR || 0;
+                    pitySSR = data.pitySSR || 0;
+                }
+            } catch (e) {}
+        }
+        function saveGame() {
+            try {
+                localStorage.setItem('hanagenkyo_free', JSON.stringify({
+                    owned, pitySR, pitySSR
+                }));
+            } catch (e) {}
+        }
+
+        // 初始化
+        loadSave();
+
+        // 工具：按稀有度抽取角色 (含保底逻辑)
+        function drawRandomCard() {
+            const r = Math.random();
+            let targetRarity;
+            if (r < PROB.SSR) targetRarity = 'SSR';
+            else if (r < PROB.SSR + PROB.SR) targetRarity = 'SR';
+            else targetRarity = 'R';
+
+            // 保底覆盖
+            if (pitySR >= 9) { // 第10抽必SR
+                targetRarity = 'SR';
+                pitySR = -1; // 抽完后重置
+            }
+            if (pitySSR >= 39) { // 第40抽必SSR
+                targetRarity = 'SSR';
+                pitySSR = -1;
+            }
+
+            const candidates = ROLES.filter(r => r.rarity === targetRarity);
+            const idx = Math.floor(Math.random() * candidates.length);
+            const selected = candidates[idx];
+            return ROLES.find(r => r.id === selected.id);
+        }
+
+        // 进行一次抽卡 (返回抽到的角色)
+        function performDraw() {
+            pitySR++;
+            pitySSR++;
+
+            const card = drawRandomCard();
+
+            if (card.rarity === 'SR') pitySR = 0;
+            if (card.rarity === 'SSR') pitySSR = 0;
+
+            const index = ROLES.findIndex(r => r.id === card.id);
+            owned[index] = true;
+
+            return card;
+        }
+
+        // 抽卡主逻辑 (完全免费，无限抽)
+        function draw(times) {
+            const results = [];
+            for (let i = 0; i < times; i++) {
+                results.push(performDraw());
+            }
+            saveGame();
+            renderCurrentTab();  // 刷新界面
+            return results;
+        }
+
+        // ---------- UI 渲染 ----------
+        const tabs = document.querySelectorAll('.tab');
+        const contentDiv = document.getElementById('content');
+
+        // 渲染图鉴
+        function renderAlbum() {
+            let html = '<div class="grid">';
+            ROLES.forEach((role, idx) => {
+                const ownedClass = owned[idx] ? 'owned' : '';
+                const rarityClass = `rarity-${role.rarity}`;
+                html += `
+                    <div class="character-card ${ownedClass}">
+                        <div class="avatar ${rarityClass}">${owned[idx] ? role.emoji : '?'}</div>
+                        <div class="name">${owned[idx] ? role.name : '???'}</div>
+                        <div class="attr">${owned[idx] ? role.attr : '???'}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            contentDiv.innerHTML = html;
+        }
+
+        // 渲染抽卡界面
+        function renderGacha() {
+            let html = `
+                <div class="gacha-area">
+                    <div class="gacha-buttons">
+                        <button class="gacha-btn" id="draw1">单抽 ✨</button>
+                        <button class="gacha-btn" id="draw10">十连 ✨</button>
+                    </div>
+                    <div class="pity-counter">
+                        <span>SR保底: ${10 - (pitySR % 10)}抽</span>
+                        <span>SSR保底: ${40 - (pitySSR % 40)}抽</span>
+                    </div>
+                    <div class="result-area" id="gacha-result">
+                        点击抽卡，出现角色～
+                    </div>
+                </div>
+            `;
+            contentDiv.innerHTML = html;
+
+            document.getElementById('draw1').addEventListener('click', () => {
+                const cards = draw(1);
+                showDrawResult(cards);
+            });
+            document.getElementById('draw10').addEventListener('click', () => {
+                const cards = draw(10);
+                showDrawResult(cards);
+            });
+
+            function showDrawResult(cards) {
+                const area = document.getElementById('gacha-result');
+                if (!area) return;
+                let html = '';
+                cards.forEach(card => {
+                    html += `
+                        <div class="result-card rarity-${card.rarity}">
+                            <div style="font-size:24px;">${card.emoji}</div>
+                            <div>${card.name}</div>
+                            <div style="background:#ffb6c1; border-radius:20px; padding:2px; margin-top:2px;">${card.rarity}</div>
+                        </div>
+                    `;
+                });
+                area.innerHTML = html;
+            }
+        }
+
+        // 根据当前激活的选项卡渲染内容
+        let currentTab = 'gacha';
+        function renderCurrentTab() {
+            if (currentTab === 'album') renderAlbum();
+            else renderGacha(); // 默认抽卡
+        }
+
+    /／选项卡切换
+tabs.forEach(tab => {
+tab.addEventListener('click', ( =>
+}~
+tabs.forEach(t =>
+t.classList.remove('active'));
+tab.classList.add('active');
+currentTab=
+tab.dataset.tab;
+renderCurrentTab();
+});
+});
+// 初始渲染
+renderCurrentTab();
+/／保存游戏
+window.addEventList
+ener('beforeunload', () =>
+saveGame());
+})O;</script>
+</body>
+</html>
